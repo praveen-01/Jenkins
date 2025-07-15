@@ -1,5 +1,11 @@
 pipeline{
     agent any 
+    parameters {
+        string(name: 'BRANCH_NAME', description: 'Enter Docker image tag (e.g., 1.0.3)')
+    }
+     environment {
+        IMAGE_NAME = "mohitgudivada01/mohitimages:v${DOCKER_TAG}"
+    }
     stages{
         stage('Checkout'){
             steps{
@@ -12,16 +18,17 @@ pipeline{
                 echo 'build container'
                 sh 'ls -a'
                 dir('docker-python-app'){
-                    sh 'docker build -t mohitgudivada01/mohitimages:v0.2 .'
+                    sh 'docker build -t ${IMAGE_NAME} .'
                 }
             }
         }
         stage('GEt credentials'){
             steps{
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-      sh '''docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+      sh '''
+            echo "${DOCKER_PASS}" | docker login -u ${DOCKER_USER} --password-stdin
             echo 'pushing image to hub'
-            docker push mohitgudivada01/mohitimages:v0.2'''
+            docker push ${IMAGE_NAME}'''
             }
         }
         }
