@@ -1,0 +1,29 @@
+pipeline{
+    agent any 
+    stages{
+        stage('Checkout'){
+            steps{
+                echo 'git checkout'
+                git branch: 'main', url: 'https://github.com/praveen-01/Jenkins.git'
+            }
+        }
+        stage('Build code'){
+            steps{
+                echo 'build container'
+                sh 'ls -a'
+                dir('docker-python-app'){
+                    sh 'docker build -t mohitgudivada01/mohitimages:v0.2 .'
+                }
+            }
+        }
+        stage('GEt credentials'){
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+      sh '''docker login -u mohitgudivada01 -p ${DOCKER_PASS}
+            echo 'pushing image to hub'
+            docker push mohitgudivada01/mohitimages:v0.2'''
+            }
+        }
+        }
+    }
+}
